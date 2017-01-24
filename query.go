@@ -25,6 +25,7 @@ type Query struct {
 	done bool
 }
 
+// 添加数据, 自动去重, 生成结果
 func (self *Query) add(data interface{}) {
 	ptr := reflect.ValueOf(data).Pointer()
 
@@ -46,6 +47,7 @@ func (self *Query) add(data interface{}) {
 	}
 }
 
+// 条件约束
 func (self *Query) Where(fieldName string, matchTypeStr string, value interface{}) *Query {
 
 	matchType := getMatchTypeBySign(matchTypeStr)
@@ -68,6 +70,7 @@ func (self *Query) Where(fieldName string, matchTypeStr string, value interface{
 	return self
 }
 
+// 约束输出数量
 func (self *Query) Limit(count int) *Query {
 
 	self.limit = count
@@ -75,6 +78,7 @@ func (self *Query) Limit(count int) *Query {
 	return self
 }
 
+// 根据排序函数排序
 func (self *Query) SortBy(callback func(interface{}, interface{}) bool) *Query {
 
 	self.sortor = callback
@@ -95,7 +99,7 @@ func (self *Query) do() {
 		if len(self.cons) == 0 {
 
 			// 返回所有
-			self.tab.Field(0).All(self)
+			self.tab.FieldByIndex(0).All(self)
 
 		} else {
 
@@ -109,6 +113,7 @@ func (self *Query) do() {
 	self.done = true
 }
 
+// 处理数据并且输出
 func (self *Query) Result() []interface{} {
 
 	self.do()
@@ -143,6 +148,7 @@ func (self *Query) Result() []interface{} {
 	return ret.Raw()
 }
 
+// 直接访问原始数据, 不支持Limit,SortBy
 func (self *Query) VisitRawResult(callback func(interface{}) bool) {
 
 	self.do()

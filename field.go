@@ -6,6 +6,7 @@ type tableField struct {
 	mapper map[interface{}]*RecordList
 }
 
+// 添加数据到字段, 索引, 引用数据所在结构体
 func (self *tableField) Add(data, refRecord interface{}) {
 
 	var value *RecordList
@@ -28,22 +29,24 @@ func addListToResult(ml *Query, rl *RecordList) {
 	}
 }
 
-func (self *tableField) All(ml *Query) {
+// 向结果集添加数据
+func (self *tableField) All(q *Query) {
 
 	for _, v := range self.mapper {
-		addListToResult(ml, v)
+		addListToResult(q, v)
 	}
 
 }
 
-func (self *tableField) Match(ml *Query, t MatchType, data interface{}) {
+// 向结果集添加符合条件的数据
+func (self *tableField) Match(q *Query, t MatchType, data interface{}) {
 
 	switch t {
 	case MatchType_Equal:
 
 		if v, ok := self.mapper[data]; ok {
 
-			addListToResult(ml, v)
+			addListToResult(q, v)
 		}
 
 	case MatchType_NotEqual:
@@ -51,7 +54,7 @@ func (self *tableField) Match(ml *Query, t MatchType, data interface{}) {
 		for k, v := range self.mapper {
 
 			if k != data {
-				addListToResult(ml, v)
+				addListToResult(q, v)
 			}
 		}
 
@@ -65,19 +68,19 @@ func (self *tableField) Match(ml *Query, t MatchType, data interface{}) {
 			switch t {
 			case MatchType_Great:
 				if key > vdata {
-					addListToResult(ml, v)
+					addListToResult(q, v)
 				}
 			case MatchType_GreatEqual:
 				if key >= vdata {
-					addListToResult(ml, v)
+					addListToResult(q, v)
 				}
 			case MatchType_Less:
 				if key < vdata {
-					addListToResult(ml, v)
+					addListToResult(q, v)
 				}
 			case MatchType_LessEqual:
 				if key <= vdata {
-					addListToResult(ml, v)
+					addListToResult(q, v)
 				}
 			}
 		}

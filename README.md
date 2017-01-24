@@ -14,10 +14,14 @@
 
 * 原生golang编写,无cgo, 无第三方引用
 
-* 组合查询方便
+* 支持结果数量约束(Limit)
+
+* 支持结果排序(SortBy+自定义排序函数)
+
+* 多字段任意组合查询
 
 # 支持功能的等效SQL语法
-select * from memory where condition1 and condition2... limit count
+select * from memory where condition1 and condition2... limit count orderby xxx
 
 ```golang
 	// 数据源
@@ -86,6 +90,8 @@ select * from memory where condition1 and condition2... limit count
 
 # TODO
 * 支持构建索引, 便于提高不等匹配(!=, <,>...)查询性能
+
+* 整合入tabtoy中支持复杂表格数据查询
 
 # 备注
 

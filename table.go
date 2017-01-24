@@ -36,7 +36,7 @@ func (self *Table) FieldByName(name string) *tableField {
 	return nil
 }
 
-func (self *Table) Field(index int) *tableField {
+func (self *Table) FieldByIndex(index int) *tableField {
 	return self.fields[index]
 }
 
