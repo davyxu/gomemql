@@ -11,6 +11,7 @@ const (
 	MatchType_GreatEqual
 	MatchType_Less
 	MatchType_LessEqual
+	MatchType_MAX
 )
 
 var sign2MatchType = map[string]MatchType{

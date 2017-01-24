@@ -8,8 +8,7 @@ type tableDef struct {
 	Name  string
 }
 
-func TestSample(t *testing.T) {
-
+func genTestTable() *Table {
 	// 数据源
 	tabData := []*tableDef{
 		&tableDef{Id: 6, Level: 20, Name: "kitty"},
@@ -26,6 +25,13 @@ func TestSample(t *testing.T) {
 		tab.AddRecord(r)
 	}
 
+	return tab
+}
+
+func Test2Condition(t *testing.T) {
+
+	tab := genTestTable()
+
 	// ====================例子1====================
 	// 2条件匹配查询
 	for _, v := range NewQuery(tab).Where("Level", "<", int32(50)).Where("Name", "==", "hello").Result() {
@@ -33,9 +39,13 @@ func TestSample(t *testing.T) {
 		t.Log(v)
 	}
 
-	t.Log()
-
 	// Got  &{3 20 hello}
+
+}
+
+func TestSortLimit(t *testing.T) {
+
+	tab := genTestTable()
 
 	// ====================例子2====================
 	// 1条件, 排序和数量限制
@@ -59,7 +69,12 @@ func TestSample(t *testing.T) {
 		&{4 20 kitty}
 		&{6 20 kitty}
 	*/
-	t.Log()
+}
+
+func TestShowAll(t *testing.T) {
+
+	tab := genTestTable()
+
 	// ====================例子3====================
 	// 直接访问结果,无缓存, 效率高, 但不能处理SortBy和Limit
 
@@ -71,4 +86,22 @@ func TestSample(t *testing.T) {
 	/*
 		Got All 6 records
 	*/
+
+}
+
+func TestGenIndex(t *testing.T) {
+
+	tab := genTestTable()
+	if err := tab.GenFieldIndex("Id", "<", 1, 6); err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	// ====================例子4====================
+	// 索引创建
+	for _, v := range NewQuery(tab).Where("Id", "<", int32(3)).Result() {
+
+		t.Log(v)
+	}
+
 }
