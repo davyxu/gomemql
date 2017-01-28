@@ -92,14 +92,14 @@ func TestShowAll(t *testing.T) {
 func TestGenIndex(t *testing.T) {
 
 	tab := genTestTable()
-	if err := tab.GenFieldIndex("Id", "<", 1, 6); err != nil {
+	if err := tab.GenFieldIndex("Id", "!=", 1, 6); err != nil {
 		t.Log(err)
 		t.FailNow()
 	}
 
 	// ====================例子4====================
 	// 索引创建
-	for _, v := range NewQuery(tab).Where("Id", "<", int32(3)).Result() {
+	for _, v := range NewQuery(tab).Where("Id", "!=", int32(3)).Result() {
 
 		t.Log(v)
 	}

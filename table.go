@@ -63,27 +63,64 @@ func (self *Table) GenFieldIndex(name string, matchTypeStr string, begin, end in
 		return errors.New("unknown match type: " + matchTypeStr)
 	}
 
-	// 做出索引
-	field.genIndex(matchType)
+	var i, j int32
 
-	var i int32
-
-	var lastNotNil *RecordList
+	// 遍历实际访问的数值
 	for i = begin; i <= end; i++ {
-		list := field.getByKey(i)
 
-		if list == nil {
+		switch matchType {
+		case MatchType_NotEqual:
 
-			if lastNotNil != nil {
-				field.addIndexData(matchType, i, lastNotNil)
+			indexList := newRecordList()
+
+			for j = i; j <= end; j++ {
+				if j == i {
+					continue
+				}
+
+				list := field.getByKey(j)
+				indexList.AddRange(list)
 			}
 
-		} else {
-			field.addIndexData(matchType, i, list)
-		}
+			field.addIndexData(matchType, i, indexList)
+		case MatchType_Great:
 
-		if list != nil {
-			lastNotNil = list
+			indexList := newRecordList()
+			// 大于当前值的所有列表合并
+			for j = i + 1; j <= end; j++ {
+				list := field.getByKey(j)
+				indexList.AddRange(list)
+			}
+
+			field.addIndexData(matchType, i, indexList)
+		case MatchType_GreatEqual:
+
+			indexList := newRecordList()
+			// 大于等于当前值的所有列表合并
+			for j = i; j <= end; j++ {
+				list := field.getByKey(j)
+				indexList.AddRange(list)
+			}
+
+			field.addIndexData(matchType, i, indexList)
+		case MatchType_Less:
+
+			indexList := newRecordList()
+			for j = begin; j < i; j++ {
+				list := field.getByKey(j)
+				indexList.AddRange(list)
+			}
+
+			field.addIndexData(matchType, i, indexList)
+		case MatchType_LessEqual:
+
+			indexList := newRecordList()
+			for j = begin; j <= i; j++ {
+				list := field.getByKey(j)
+				indexList.AddRange(list)
+			}
+
+			field.addIndexData(matchType, i, indexList)
 		}
 
 	}

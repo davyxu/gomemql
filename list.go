@@ -16,6 +16,10 @@ func (self *RecordList) Add(data interface{}) {
 	self.data = append(self.data, data)
 }
 
+func (self *RecordList) AddRange(other *RecordList) {
+	self.data = append(self.data, other.data...)
+}
+
 func (self *RecordList) Len() int {
 	return len(self.data)
 }

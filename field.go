@@ -1,15 +1,15 @@
 package gomemql
 
-//type unequalData struct{
-//	[MatchType_MAX]*RecordList
-//}
+type unequalData struct {
+	matchTypeList [MatchType_MAX]*RecordList
+}
 
 type tableField struct {
 
 	// 根据字段里的各种数值创建的索引
 	equalMapper map[interface{}]*RecordList
 
-	lessMapper map[interface{}]*RecordList
+	etcMapper map[interface{}]*unequalData
 }
 
 // 添加数据到字段, 索引, 引用数据所在结构体
@@ -28,33 +28,23 @@ func (self *tableField) Add(data, refRecord interface{}) {
 	value.Add(refRecord)
 }
 
-func (self *tableField) mapperByType(t MatchType) map[interface{}]*RecordList {
-
-	switch t {
-	case MatchType_Less:
-		return self.lessMapper
-	}
-
-	return nil
-}
-
 func (self *tableField) addIndexData(t MatchType, key int32, list *RecordList) {
 
-	indexMap := self.mapperByType(t)
+	var ud *unequalData
 
-	indexMap[key] = list
-
-}
-
-func (self *tableField) genIndex(t MatchType) {
-	switch t {
-	case MatchType_Less:
-		if self.lessMapper != nil {
-			panic("less index already exists")
-		}
-
-		self.lessMapper = make(map[interface{}]*RecordList)
+	if self.etcMapper == nil {
+		self.etcMapper = make(map[interface{}]*unequalData)
 	}
+
+	if v, ok := self.etcMapper[key]; ok {
+		ud = v
+	} else {
+		ud = &unequalData{}
+		self.etcMapper[key] = ud
+	}
+
+	ud.matchTypeList[t] = list
+
 }
 
 func (self *tableField) KeyCount() int {
@@ -99,51 +89,71 @@ func (self *tableField) Match(q *Query, t MatchType, data interface{}) {
 
 	case MatchType_NotEqual:
 
-		for k, v := range self.equalMapper {
+		if !self.matchByIndex(q, t, data) {
+			for k, v := range self.equalMapper {
 
-			if k != data {
-				addListToResult(q, v)
+				if k != data {
+					addListToResult(q, v)
+				}
 			}
 		}
 
 	default:
 
-		if self.lessMapper != nil && t == MatchType_Less {
+		// 使用索引过的数据
+		if self.matchByIndex(q, t, data) {
+			return
+		}
 
-			if v, ok := self.lessMapper[data]; ok {
-				addListToResult(q, v)
-			}
+		vdata := data.(int32)
+		for k, v := range self.equalMapper {
 
-		} else {
-			vdata := data.(int32)
-			for k, v := range self.equalMapper {
+			key := k.(int32)
 
-				key := k.(int32)
-
-				switch t {
-				case MatchType_Great:
-					if key > vdata {
-						addListToResult(q, v)
-					}
-				case MatchType_GreatEqual:
-					if key >= vdata {
-						addListToResult(q, v)
-					}
-				case MatchType_Less:
-					if key < vdata {
-						addListToResult(q, v)
-					}
-				case MatchType_LessEqual:
-					if key <= vdata {
-						addListToResult(q, v)
-					}
+			switch t {
+			case MatchType_Great:
+				if key > vdata {
+					addListToResult(q, v)
+				}
+			case MatchType_GreatEqual:
+				if key >= vdata {
+					addListToResult(q, v)
+				}
+			case MatchType_Less:
+				if key < vdata {
+					addListToResult(q, v)
+				}
+			case MatchType_LessEqual:
+				if key <= vdata {
+					addListToResult(q, v)
 				}
 			}
-
 		}
 
 	}
 
+}
+
+func (self *tableField) matchByIndex(q *Query, t MatchType, data interface{}) bool {
+
+	if self.etcMapper == nil {
+		return false
+	}
+
+	// 这个数值对应的各种操作符映射数据
+	if v, ok := self.etcMapper[data]; ok {
+
+		// 找出这个操作符的缩影
+		typeList := v.matchTypeList[t]
+
+		if typeList == nil {
+			panic("match type index not built: " + getSignByMatchType(t))
+		}
+
+		addListToResult(q, typeList)
+	}
+
+	return true
 }
 
 func newTableField() *tableField {
