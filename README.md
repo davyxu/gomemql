@@ -89,6 +89,8 @@ select * from tableData where condition1 and condition2... limit count orderby x
 	*/
 
 ```
+# 其他版本
+	C#版参见: https://github.com/davyxu/MemQLSharp
 
 # 备注
 

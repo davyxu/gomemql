@@ -102,4 +102,10 @@ func TestGenIndex(t *testing.T) {
 		t.Log(v)
 	}
 
+	/*
+			Got
+	        &{4 20 kitty}
+	        &{5 10 power}
+	        &{6 20 kitty}
+	*/
 }
