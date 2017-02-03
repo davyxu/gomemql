@@ -20,6 +20,7 @@ func BenchmarkTest(b *testing.B) {
 		tab.AddRecord(r)
 	}
 
+	// 构建Id字段>的0~100的索引索引
 	tab.GenFieldIndex("Id", ">", 0, 100)
 
 	b.ResetTimer()
