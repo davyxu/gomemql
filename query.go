@@ -73,6 +73,10 @@ func (self *Query) Where(fieldName string, matchTypeStr string, value interface{
 // 约束输出数量
 func (self *Query) Limit(count int) *Query {
 
+	if count < 0 {
+		panic("count should > 0 ")
+	}
+
 	self.limit = count
 
 	return self
@@ -118,31 +122,23 @@ func (self *Query) Result() []interface{} {
 
 	self.do()
 
-	var count int
-	if self.limit != -1 {
-		if self.limit < len(self.result) {
-			count = self.limit
-		} else {
-			count = len(self.result)
-		}
-	} else {
-		count = len(self.result)
-	}
-
+	// map转数组
 	var ret *RecordList
-	ret = newRecordListInitCount(count)
+	ret = newRecordListInitCount(len(self.result))
 	var index int
 	for _, v := range self.result {
-
-		if index >= count {
-			break
-		}
 		ret.set(index, v)
 		index++
 	}
 
+	// 先排序
 	if self.sortor != nil {
 		ret.Sort(self.sortor)
+	}
+
+	if self.limit != -1 && self.limit < len(self.result) {
+		// 约束数量
+		ret.Resize(self.limit)
 	}
 
 	return ret.Raw()

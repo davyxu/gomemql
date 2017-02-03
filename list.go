@@ -28,6 +28,10 @@ func (self *RecordList) Get(index int) interface{} {
 	return self.data[index]
 }
 
+func (self *RecordList) Resize(count int) {
+	self.data = self.data[0:count]
+}
+
 func (self *RecordList) set(index int, v interface{}) {
 	self.data[index] = v
 }
@@ -48,7 +52,6 @@ func (self *RecordList) Sort(callback func(interface{}, interface{}) bool) {
 
 func newRecordList() *RecordList {
 	return &RecordList{}
-
 }
 
 func newRecordListInitCount(count int) *RecordList {

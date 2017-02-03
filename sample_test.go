@@ -75,7 +75,6 @@ func TestShowAll(t *testing.T) {
 
 	tab := genTestTable()
 
-	// ====================例子3====================
 	// 直接访问结果,无缓存, 效率高, 但不能处理SortBy和Limit
 
 	NewQuery(tab).VisitRawResult(func(v interface{}) bool {
@@ -97,7 +96,6 @@ func TestGenIndex(t *testing.T) {
 		t.FailNow()
 	}
 
-	// ====================例子4====================
 	// 索引创建
 	for _, v := range NewQuery(tab).Where("Id", "!=", int32(3)).Result() {
 

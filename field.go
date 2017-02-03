@@ -105,6 +105,7 @@ func (self *tableField) Match(q *Query, t MatchType, data interface{}) {
 			return
 		}
 
+		// 暴力匹配
 		vdata := data.(int32)
 		for k, v := range self.equalMapper {
 
