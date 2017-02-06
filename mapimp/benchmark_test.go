@@ -21,11 +21,11 @@ func BenchmarkTest(b *testing.B) {
 	}
 
 	// 构建Id字段>的0~100的索引索引
-	tab.GenFieldIndex("Id", ">", 0, 100)
+	tab.GenFieldIndexGreat("Id", 0, 100)
 
 	b.ResetTimer()
 	// 并发查询量
 	for i := 0; i < 3000; i++ {
-		NewQuery(tab).Where("Id", ">", int32(50)).Where("Level", "==", int32(500)).VisitRawResult(nil)
+		NewQuery(tab).Great("Id", int32(50)).Equal("Level", int32(500)).Result(nil)
 	}
 }

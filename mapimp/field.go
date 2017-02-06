@@ -1,7 +1,7 @@
 package gomemql
 
 type unequalData struct {
-	matchTypeList [MatchType_MAX]*RecordList
+	matchTypeList [matchType_MAX]*RecordList
 }
 
 type tableField struct {
@@ -28,7 +28,7 @@ func (self *tableField) Add(data, refRecord interface{}) {
 	value.Add(refRecord)
 }
 
-func (self *tableField) addIndexData(t MatchType, key int32, list *RecordList) {
+func (self *tableField) addIndexData(t matchType, key int32, list *RecordList) {
 
 	var ud *unequalData
 
@@ -51,18 +51,13 @@ func (self *tableField) KeyCount() int {
 	return len(self.equalMapper)
 }
 
-func addListToResult(ml *Query, rl *RecordList) {
-
-	for _, v := range rl.data {
-		ml.add(v)
-	}
-}
-
 // 向结果集添加数据
 func (self *tableField) All(q *Query) {
 
 	for _, v := range self.equalMapper {
-		addListToResult(q, v)
+		if !q.addRecord(v) {
+			return
+		}
 	}
 
 }
@@ -77,23 +72,24 @@ func (self *tableField) getByKey(key interface{}) *RecordList {
 }
 
 // 向结果集添加符合条件的数据
-func (self *tableField) Match(q *Query, t MatchType, data interface{}) {
+func (self *tableField) Match(q *Query, t matchType, data interface{}) {
 
 	switch t {
-	case MatchType_Equal:
+	case matchType_Equal:
 
 		if v := self.getByKey(data); v != nil {
-
-			addListToResult(q, v)
+			q.addRecord(v)
 		}
 
-	case MatchType_NotEqual:
+	case matchType_NotEqual:
 
 		if !self.matchByIndex(q, t, data) {
 			for k, v := range self.equalMapper {
 
 				if k != data {
-					addListToResult(q, v)
+					if !q.addRecord(v) {
+						break
+					}
 				}
 			}
 		}
@@ -106,36 +102,55 @@ func (self *tableField) Match(q *Query, t MatchType, data interface{}) {
 		}
 
 		// 暴力匹配
-		vdata := data.(int32)
 		for k, v := range self.equalMapper {
 
-			key := k.(int32)
-
-			switch t {
-			case MatchType_Great:
-				if key > vdata {
-					addListToResult(q, v)
-				}
-			case MatchType_GreatEqual:
-				if key >= vdata {
-					addListToResult(q, v)
-				}
-			case MatchType_Less:
-				if key < vdata {
-					addListToResult(q, v)
-				}
-			case MatchType_LessEqual:
-				if key <= vdata {
-					addListToResult(q, v)
+			if compare(t, k, data) {
+				if !q.addRecord(v) {
+					break
 				}
 			}
+
 		}
 
 	}
 
 }
 
-func (self *tableField) matchByIndex(q *Query, t MatchType, data interface{}) bool {
+func compare(t matchType, tabData, userExpect interface{}) bool {
+
+	switch tabDataT := tabData.(type) {
+	case int32:
+		userExpectT := userExpect.(int32)
+
+		switch t {
+		case matchType_Less:
+			return tabDataT < userExpectT
+		case matchType_LessEqual:
+			return tabDataT <= userExpectT
+		case matchType_Great:
+			return tabDataT > userExpectT
+		case matchType_GreatEqual:
+			return tabDataT >= userExpectT
+		}
+	case int64:
+		userExpectT := userExpect.(int64)
+
+		switch t {
+		case matchType_Less:
+			return tabDataT < userExpectT
+		case matchType_LessEqual:
+			return tabDataT <= userExpectT
+		case matchType_Great:
+			return tabDataT > userExpectT
+		case matchType_GreatEqual:
+			return tabDataT >= userExpectT
+		}
+	}
+
+	return false
+}
+
+func (self *tableField) matchByIndex(q *Query, t matchType, data interface{}) bool {
 
 	if self.etcMapper == nil {
 		return false
@@ -151,7 +166,7 @@ func (self *tableField) matchByIndex(q *Query, t MatchType, data interface{}) bo
 			panic("match type index not built: " + getSignByMatchType(t))
 		}
 
-		addListToResult(q, typeList)
+		q.addRecord(typeList)
 	}
 
 	return true

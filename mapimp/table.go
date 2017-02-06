@@ -43,7 +43,32 @@ func (self *Table) FieldByIndex(index int) *tableField {
 	return self.fields[index]
 }
 
-func (self *Table) GenFieldIndex(name string, matchTypeStr string, begin, end int32) error {
+func (self *Table) GenFieldIndexNotEqual(name string, begin, end int32) error {
+
+	return self.genFieldIndex(name, matchType_NotEqual, begin, end)
+}
+
+func (self *Table) GenFieldIndexLess(name string, begin, end int32) error {
+
+	return self.genFieldIndex(name, matchType_Less, begin, end)
+}
+
+func (self *Table) GenFieldIndexLessEqual(name string, begin, end int32) error {
+
+	return self.genFieldIndex(name, matchType_LessEqual, begin, end)
+}
+
+func (self *Table) GenFieldIndexGreat(name string, begin, end int32) error {
+
+	return self.genFieldIndex(name, matchType_Great, begin, end)
+}
+
+func (self *Table) GenFieldIndexGreatEqual(name string, begin, end int32) error {
+
+	return self.genFieldIndex(name, matchType_GreatEqual, begin, end)
+}
+
+func (self *Table) genFieldIndex(name string, t matchType, begin, end int32) error {
 
 	if self.NumFields() == 0 {
 		return nil
@@ -58,20 +83,15 @@ func (self *Table) GenFieldIndex(name string, matchTypeStr string, begin, end in
 		return errors.New("field not found: " + name)
 	}
 
-	matchType := getMatchTypeBySign(matchTypeStr)
-	if matchType == MatchType_Unknown {
-		return errors.New("unknown match type: " + matchTypeStr)
-	}
-
 	var i, j int32
 
 	// 遍历实际访问的数值
 	for i = begin; i <= end; i++ {
 
-		switch matchType {
-		case MatchType_NotEqual:
+		indexList := newRecordList()
 
-			indexList := newRecordList()
+		switch t {
+		case matchType_NotEqual:
 
 			for j = i; j <= end; j++ {
 				if j == i {
@@ -82,46 +102,39 @@ func (self *Table) GenFieldIndex(name string, matchTypeStr string, begin, end in
 				indexList.AddRange(list)
 			}
 
-			field.addIndexData(matchType, i, indexList)
-		case MatchType_Great:
-
-			indexList := newRecordList()
+		case matchType_Great:
 			// 大于当前值的所有列表合并
 			for j = i + 1; j <= end; j++ {
 				list := field.getByKey(j)
 				indexList.AddRange(list)
 			}
 
-			field.addIndexData(matchType, i, indexList)
-		case MatchType_GreatEqual:
+		case matchType_GreatEqual:
 
-			indexList := newRecordList()
 			// 大于等于当前值的所有列表合并
 			for j = i; j <= end; j++ {
 				list := field.getByKey(j)
 				indexList.AddRange(list)
 			}
 
-			field.addIndexData(matchType, i, indexList)
-		case MatchType_Less:
+		case matchType_Less:
 
-			indexList := newRecordList()
 			for j = begin; j < i; j++ {
 				list := field.getByKey(j)
 				indexList.AddRange(list)
 			}
 
-			field.addIndexData(matchType, i, indexList)
-		case MatchType_LessEqual:
+		case matchType_LessEqual:
 
-			indexList := newRecordList()
 			for j = begin; j <= i; j++ {
 				list := field.getByKey(j)
 				indexList.AddRange(list)
 			}
-
-			field.addIndexData(matchType, i, indexList)
+		case matchType_Equal:
+			panic("no need to create index of equal")
 		}
+
+		field.addIndexData(t, i, indexList)
 
 	}
 
