@@ -47,8 +47,7 @@ select * from tableData where condition1 and condition2...
 	for _, r := range tabData {
 		tab.AddRecord(r)
 	}
-
-	// ====================例子1====================
+	
 	// 2条件匹配查询
 	NewQuery(tab).Less("Level", int32(50)).Equal("Name", "hello").Result(func(v interface{}) bool {
 
@@ -60,9 +59,8 @@ select * from tableData where condition1 and condition2...
 	t.Log()
 
 	// Got  &{3 20 hello}
-
-	// ====================例子3====================
-	// 直接访问结果,无缓存, 效率高, 但不能处理SortBy和Limit
+	
+	// 直接访问结果
 
 	NewQuery(tab).Result(func(v interface{}) bool {
 		t.Log(v)
