@@ -36,6 +36,20 @@ https://github.com/davyxu/gomemql/nodeimp
 
 # 例子
 ```golang
+	type tableDef struct {
+		Id    int32
+		Level int32
+		Name  string
+	}
+	
+	var tabData = []*tableDef{
+		&tableDef{Id: 6, Level: 20, Name: "kitty"},
+		&tableDef{Id: 1, Level: 50, Name: "hello"},
+		&tableDef{Id: 4, Level: 20, Name: "kitty"},
+		&tableDef{Id: 5, Level: 10, Name: "power"},
+		&tableDef{Id: 3, Level: 20, Name: "hello"},
+		&tableDef{Id: 2, Level: 20, Name: "kitty"},
+	}
 
 	func TestHelloWorld(t *testing.T) {
 	
