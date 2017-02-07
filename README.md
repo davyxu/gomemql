@@ -10,10 +10,9 @@
 成就表: 定义成就类型, 事件类型, 玩家等级等静态表格数据
 通过本系统查出符合条件的集合, 再检查动态数据, 例如: 玩家拥有物品等
 
-# map实现版
-https://github.com/davyxu/gomemql/mapimp
 
-## 特性
+# node实现版
+https://github.com/davyxu/gomemql/nodeimp
 
 * 原生golang编写,无cgo, 无第三方引用, 不依赖sqlite
 
@@ -21,176 +20,64 @@ https://github.com/davyxu/gomemql/mapimp
 
 * 支持构建字段搜索索引, 提高不等匹配(!=, <,>...)查询性能
 
-* 建立缓冲后,查询性能为O(1). 非缓冲的不等匹配字段性能为O(N*M), 等于匹配性能为O(1)
+* 建立索引后,查询性能为O(字段数). 非缓冲的不等匹配字段性能为O(字段数*字段记录数), 等于匹配性能为O(字段数)
 
-## 适用范围
+* 记录相关无内存分配, GC友好
 
-类sql方式的复杂组合查询, gc不敏感项目
+# 实现原理
 
-## 支持功能的等效SQL语法
-select * from tableData where condition1 and condition2...
+根据每个记录集的N个字段, 建立N层的树状节点
 
-## 例子
-```golang
-	// 数据源
-	tabData := []*tableDef{
-		&tableDef{Id: 6, Level: 20, Name: "kitty"},
-		&tableDef{Id: 1, Level: 50, Name: "hello"},
-		&tableDef{Id: 4, Level: 20, Name: "kitty"},
-		&tableDef{Id: 5, Level: 10, Name: "power"},
-		&tableDef{Id: 3, Level: 20, Name: "hello"},
-		&tableDef{Id: 2, Level: 20, Name: "kitty"},
-	}
+所有记录的字段数必须统一
 
-	// 创建数据表
-	tab := NewTable(new(tableDef))
-	for _, r := range tabData {
-		tab.AddRecord(r)
-	}
-	
-	// 2条件匹配查询
-	NewQuery(tab).Less("Level", int32(50)).Equal("Name", "hello").Result(func(v interface{}) bool {
+每个节点根据字段值进行索引
 
-		t.Log(v)
+最终节点持有匹配前面节点条件的结果集合
 
-		return true
-	})
-
-	t.Log()
-
-	// Got  &{3 20 hello}
-	
-	// 直接访问结果
-
-	NewQuery(tab).Result(func(v interface{}) bool {
-		t.Log(v)
-		return true
-	})
-
-	/*
-		Got All 6 records
-	*/
-
-```
-# btree实现版
-
-https://github.com/davyxu/gomemql/btreeimp
-
-依赖
-https://github.com/google/btree
-
-## 特性
-
-* 结构更简单
-
-* 更低的GC, 更好的内存控制
-
-* 原生golang编写,无cgo, 无第三方引用, 不依赖sqlite
-
-* 可以按相等/不相等条件, 字段组合分离任意组合查询
-
-* 查询性能为O(logN), 不等匹配为O(N*M)
-
-## 适用范围
-gc敏感, 性能稍好的逻辑
-
-## 支持功能的等效SQL语法
-select * from tableData where condition1 and condition2...
-
-## 例子
+# 例子
 ```golang
 
-	type tableDef struct {
-		Id    int32
-		Level int32
-		Name  string
-		Tag   int32
-	}
-
-	type tableDef_2Field tableDef
+	func TestHelloWorld(t *testing.T) {
 	
-	func (self *tableDef_2Field) Less(than btree.Item) bool {
+		tab := NewTable()
 	
-		other := than.(*tableDef_2Field)
-	
-		if self.Tag != other.Tag {
-			return self.Tag < other.Tag
+		for _, v := range tabData {
+			tab.AddRecord(v.Name, v)
 		}
 	
-		if self.Name != other.Name {
-			return self.Name < other.Name
+		// 匹配Name为hello
+		NewQuery(tab).Equal("hello").Result(func(v interface{}) bool {
+	
+			t.Log(v)
+	
+			return true
+		})
+	
+	}
+	
+	func Test2ConditionWithIndex(t *testing.T) {
+	
+		tab := NewTable()
+	
+		for _, v := range tabData {
+			tab.AddRecord(v.Name, v.Id, v)
 		}
 	
-		return false
-	}
+		// 构建第二个字段(Id), 从1~6的索引
+		tab.GenIndexNotEqual(1, 1, 6)
 	
-	type tableDef_Level tableDef
+		NewQuery(tab).Equal("kitty").NotEqual(int32(4)).Result(func(v interface{}) bool {
 	
-	func (self *tableDef_Level) Less(than btree.Item) bool {
+			t.Log(v)
 	
-		other := than.(*tableDef_Level)
+			return true
+		})
 	
-		if self.Level != other.Level {
-			return self.Level < other.Level
-		}
-	
-		return false
 	}
 
-
-	var tabData = []*tableDef{
-		&tableDef{Id: 6, Level: 20, Name: "kitty", Tag: 1},
-		&tableDef{Id: 1, Level: 50, Name: "hello", Tag: 2},
-		&tableDef{Id: 4, Level: 20, Name: "kitty", Tag: 2},
-		&tableDef{Id: 5, Level: 10, Name: "power", Tag: 2},
-		&tableDef{Id: 3, Level: 20, Name: "hello", Tag: 1},
-		&tableDef{Id: 2, Level: 10, Name: "kitty", Tag: 1},
-	}
-
-	f1 := NewField()
-
-	for _, v := range tabData {
-
-		f1.AddRecord((*tableDef_2Field)(v), v)
-	}
-
-	f2 := NewField()
-
-	for _, v := range tabData {
-
-		f2.AddRecord((*tableDef_Level)(v), v)
-	}
-
-	var result []int32
-
-	NewQuery(func(el interface{}) {
-
-		record := el.(*tableDef)
-
-		result = append(result, record.Id)
-
-		t.Log(el)
-
-		// 两个结构体字段同时匹配
-	}).Equal(f1, &tableDef_2Field{
-		Name: "kitty",
-		Tag:  1,
-	},
-	// 小于匹配
-	).Less(f2, &tableDef_Level{
-		Level: 20,
-	},
-	).Start()
-
-	/*
-		&{2 10 kitty 1g}
-	*/
-
-	if len(result) != 1 || result[0] != 2 {
-		t.FailNow()
-	}
 
 ```
+
 
 
 # 其他版本
