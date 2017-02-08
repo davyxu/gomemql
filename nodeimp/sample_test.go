@@ -56,3 +56,27 @@ func Test2ConditionWithIndex(t *testing.T) {
 	})
 
 }
+
+func TestVariantFieldLen(t *testing.T) {
+
+	tab := NewTable()
+
+	tab.AddRecord(1, "Genji")
+
+	tab.AddRecord(1, 2, "Zenyatta")
+
+	NewQuery(tab).Equal(1).Result(func(v interface{}) bool {
+
+		t.Log(1, v)
+
+		return true
+	})
+
+	NewQuery(tab).Equal(1).Equal(2).Result(func(v interface{}) bool {
+
+		t.Log(2, v)
+
+		return true
+	})
+
+}

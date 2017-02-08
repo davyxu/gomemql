@@ -86,6 +86,11 @@ func (self *Query) get(index int) *condition {
 	return self.child[index]
 }
 
+func (self *Query) isTerminate(index int) bool {
+
+	return index >= len(self.child)
+}
+
 // 开始一个新的查询
 func NewQuery(tab *Table) *Query {
 	return &Query{

@@ -7,21 +7,11 @@ import (
 
 // 存储静态的记录集合
 type Table struct {
-	root node
-
-	fieldCount int
+	root *indexNode
 }
 
 // 添加记录, 多个字段以逗号分割, 最后一个为整个记录集引用
 func (self *Table) AddRecord(fields ...interface{}) {
-
-	fieldCount := len(fields)
-
-	if self.fieldCount == 0 {
-		self.fieldCount = fieldCount
-	} else if self.fieldCount != fieldCount {
-		panic("every record fields should equal")
-	}
 
 	record := newRecord(fields)
 
@@ -79,7 +69,7 @@ func (self *Table) GenIndexGreatEqual(index int, begin, end int32) *Table {
 
 func (self *Table) genIndex(index int, t matchType, begin, end int32) {
 
-	rootIndexNode := self.root.(*indexNode)
+	rootIndexNode := self.root
 
 	rootIndexNode.IterateNodeByIndex(rootIndexNode, index, func(parentNode *indexNode) {
 

@@ -1,4 +1,4 @@
-package gomemql
+package gomemql_map
 
 type unequalData struct {
 	matchTypeList [matchType_MAX]*RecordList

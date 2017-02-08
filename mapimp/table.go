@@ -1,4 +1,4 @@
-package gomemql
+package gomemql_map
 
 import (
 	"errors"
@@ -93,7 +93,7 @@ func (self *Table) genFieldIndex(name string, t matchType, begin, end int32) err
 		switch t {
 		case matchType_NotEqual:
 
-			for j = i; j <= end; j++ {
+			for j = begin; j <= end; j++ {
 				if j == i {
 					continue
 				}

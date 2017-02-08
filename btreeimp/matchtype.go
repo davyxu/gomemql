@@ -1,4 +1,4 @@
-package gomemql
+package gomemql_btree
 
 type matchType int
 

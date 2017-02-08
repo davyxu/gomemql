@@ -1,4 +1,4 @@
-package gomemql
+package gomemql_map
 
 type matchType int
 

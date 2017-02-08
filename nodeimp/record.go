@@ -13,11 +13,11 @@ func (self *record) GetField(index int) interface{} {
 	return self.fields[index]
 }
 
-func (self *record) NewNode(index int) node {
+func (self *record) IsTerminate(index int) bool {
+	return index >= len(self.fields)-1
+}
 
-	if index >= len(self.fields)-1 {
-		return newRecordNode(index)
-	}
+func (self *record) NewNode(index int) *indexNode {
 
 	return newIndexNode(index)
 }
