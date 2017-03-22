@@ -8,12 +8,19 @@ import (
 // 存储静态的记录集合
 type Table struct {
 	root *indexNode
+
+	nodeIdAcc int
+}
+
+func (self *Table) genID() int {
+	self.nodeIdAcc++
+	return self.nodeIdAcc
 }
 
 // 添加记录, 多个字段以逗号分割, 最后一个为整个记录集引用
 func (self *Table) AddRecord(fields ...interface{}) {
 
-	record := newRecord(fields)
+	record := newRecord(self, fields)
 
 	self.root.Add(record)
 }
@@ -81,46 +88,37 @@ func (self *Table) genIndex(index int, t matchType, begin, end int32) {
 			switch t {
 			case matchType_NotEqual:
 
-				for j = begin; j <= end; j++ {
+				for j = begin; j <= end && j != i; j++ {
 
-					if j == i {
-						continue
-					}
-					nn := parentNode.EqualMatch(j)
-					parentNode.AddIndex(t, i, nn)
+					self.addIndexNode(t, parentNode, i, j)
 
 				}
 			case matchType_Less:
 
 				for j = begin; j < i; j++ {
 
-					nn := parentNode.EqualMatch(j)
-					parentNode.AddIndex(t, i, nn)
+					self.addIndexNode(t, parentNode, i, j)
 
 				}
 			case matchType_LessEqual:
 
 				for j = begin; j <= i; j++ {
 
-					nn := parentNode.EqualMatch(j)
-					parentNode.AddIndex(t, i, nn)
+					self.addIndexNode(t, parentNode, i, j)
 
 				}
 			case matchType_Great:
 
 				for j = i + 1; j <= end; j++ {
 
-					nn := parentNode.EqualMatch(j)
-					parentNode.AddIndex(t, i, nn)
+					self.addIndexNode(t, parentNode, i, j)
 
 				}
 			case matchType_GreatEqual:
 
 				for j = i; j <= end; j++ {
 
-					nn := parentNode.EqualMatch(j)
-					parentNode.AddIndex(t, i, nn)
-
+					self.addIndexNode(t, parentNode, i, j)
 				}
 
 			case matchType_Equal:
@@ -133,9 +131,20 @@ func (self *Table) genIndex(index int, t matchType, begin, end int32) {
 
 }
 
+func (self *Table) addIndexNode(t matchType, parentNode *indexNode, i, j int32) {
+	nn := parentNode.EqualMatch(j)
+
+	if nn == nil {
+		nn = newIndexNode(self.genID(), parentNode.index)
+		parentNode.AddIndex(matchType_Equal, j, nn)
+	}
+
+	parentNode.AddIndex(t, i, nn)
+}
+
 func NewTable() *Table {
 	return &Table{
-		root: newIndexNode(0),
+		root: newIndexNode(0, 0),
 	}
 
 }

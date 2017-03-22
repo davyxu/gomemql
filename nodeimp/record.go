@@ -3,6 +3,8 @@ package gomemql
 // 用户输入的字段列表转换为记录
 type record struct {
 	fields []interface{}
+
+	tab *Table
 }
 
 func (self *record) GetField(index int) interface{} {
@@ -19,11 +21,12 @@ func (self *record) IsTerminate(index int) bool {
 
 func (self *record) NewNode(index int) *indexNode {
 
-	return newIndexNode(index)
+	return newIndexNode(self.tab.genID(), index)
 }
 
-func newRecord(fields []interface{}) *record {
+func newRecord(tab *Table, fields []interface{}) *record {
 	return &record{
+		tab:    tab,
 		fields: fields,
 	}
 

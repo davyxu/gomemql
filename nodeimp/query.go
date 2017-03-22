@@ -1,12 +1,5 @@
 package gomemql
 
-type condition struct {
-	index int
-	value interface{}
-
-	t matchType
-}
-
 type Query struct {
 	child []*condition
 	tab   *Table

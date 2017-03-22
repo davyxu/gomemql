@@ -13,6 +13,8 @@ type etcMatchKey struct {
 
 // 索引节点
 type indexNode struct {
+	id int
+
 	index int
 
 	// 映射
@@ -62,7 +64,7 @@ func (self *indexNode) Add(r *record) {
 
 func (self *indexNode) Print(b *bytes.Buffer) {
 
-	writeLineWithIndent(self, b, fmt.Sprintf("[%s] index: %d", self.Name(), self.index))
+	writeLineWithIndent(self, b, fmt.Sprintf("[%s] index: %d id:%d pointer: %p", self.Name(), self.index, self.id, self))
 
 	for k, v := range self.equalMapper {
 		writeLineWithIndent(self, b, fmt.Sprintf("%v ==", k))
@@ -76,6 +78,12 @@ func (self *indexNode) Print(b *bytes.Buffer) {
 			writeLineWithIndent(self, b, fmt.Sprintf("%v %v", k.key, k.t))
 			v.Print(b)
 		}
+
+	}
+
+	for _, list := range self.record {
+
+		writeLineWithIndent(self, b, fmt.Sprintf("%v", list))
 
 	}
 
@@ -100,6 +108,7 @@ func (self *indexNode) IterateNodeByIndex(parent *indexNode, index int, callback
 func (self *indexNode) AddIndex(t matchType, key interface{}, n *indexNode) {
 
 	if n == nil {
+		panic("add index failed")
 		return
 	}
 
@@ -176,7 +185,7 @@ func (self *indexNode) matchValue(q *Query, c *condition, callback func(interfac
 				}
 			}
 		} else {
-			fmt.Println("DO NOT USE INDEX")
+			fmt.Println("OUT OF INDEX on Condition: ", c.String())
 
 			// 暴力匹配
 			for k, v := range self.equalMapper {
@@ -253,8 +262,9 @@ func compare(t matchType, tabData, userExpect interface{}) bool {
 	return false
 }
 
-func newIndexNode(index int) *indexNode {
+func newIndexNode(id, index int) *indexNode {
 	return &indexNode{
+		id:          id,
 		index:       index,
 		equalMapper: make(map[interface{}]*indexNode),
 		etcMapper:   make(map[etcMatchKey][]*indexNode),
