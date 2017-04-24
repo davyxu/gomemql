@@ -33,4 +33,25 @@ func TestHelloWorld(t *testing.T) {
 	for _, r := range result {
 		t.Log(r)
 	}
+
+	t.Log(tab.String())
+}
+
+func TestGreatIndex(t *testing.T) {
+
+	tab := NewTable()
+
+	for _, v := range tabData {
+
+		tab.AddRecord(v, v.Name, v.Id)
+
+	}
+
+	tab.GenIndexGreat(1, 1, 6)
+
+	result := NewQuery(tab).Equal("hello").Great(int32(2)).Result()
+	for _, r := range result {
+		t.Log(r)
+	}
+
 }

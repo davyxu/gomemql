@@ -25,7 +25,7 @@ func BenchmarkTest(b *testing.B) {
 
 	b.ResetTimer()
 	// 并发查询量
-	for i := 0; i < 3000; i++ {
+	for i := 0; i < 30000; i++ {
 		NewQuery(tab).Great("Id", int32(50)).Equal("Level", int32(500)).Result(nil)
 	}
 }

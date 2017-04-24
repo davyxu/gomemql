@@ -17,7 +17,7 @@ func BenchmarkTest(b *testing.B) {
 
 	tab := NewTable()
 	for _, r := range tabData {
-		tab.AddRecord(r.Id, r.Level)
+		tab.AddRecord(r, r.Id, r.Level)
 	}
 
 	// 构建Id字段>的0~100的索引索引
@@ -26,8 +26,6 @@ func BenchmarkTest(b *testing.B) {
 	b.ResetTimer()
 	// 并发查询量
 	for i := 0; i < 30000; i++ {
-		NewQuery(tab).Great(int32(50)).Equal(int32(500)).Result(func(interface{}) bool {
-			return true
-		})
+		NewQuery(tab).Great(int32(50)).Equal(int32(500)).Result()
 	}
 }

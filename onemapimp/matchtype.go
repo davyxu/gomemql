@@ -11,7 +11,6 @@ const (
 	matchType_GreatEqual
 	matchType_Less
 	matchType_LessEqual
-	matchType_MAX
 )
 
 func (self matchType) String() string {
