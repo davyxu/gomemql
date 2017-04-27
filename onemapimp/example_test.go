@@ -55,3 +55,22 @@ func TestGreatIndex(t *testing.T) {
 	}
 
 }
+
+func TestMultiIndex(t *testing.T) {
+
+	tab := NewTable()
+
+	tab.AddRecord("a", int32(1), int32(3))
+	tab.AddRecord("b", int32(1), int32(3))
+
+	tab.GenIndexGreatEqual(0, 1, 3)
+	tab.GenIndexLessEqual(1, 1, 3)
+
+	t.Log(tab.String())
+
+	result := NewQuery(tab).GreatEqual(int32(1)).LessEqual(int32(1)).Result()
+	for _, r := range result {
+		t.Log(r)
+	}
+
+}

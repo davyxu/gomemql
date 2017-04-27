@@ -35,11 +35,11 @@ func (self *Table) FieldCount() int {
 func (self *Table) matchFieldKind(index int, kind reflect.Kind) {
 
 	if index >= len(self.fieldKind) {
-		panic("Out of bound of field " + fmt.Sprintln(index, len(self.fieldKind)))
+		panic("Out of bound of field:" + fmt.Sprintln(index, len(self.fieldKind)))
 	}
 
 	if self.fieldKind[index] != kind {
-		panic("Record field type not match")
+		panic("Record field type not match:" + fmt.Sprintln(kind.String(), self.fieldKind[index].String()))
 	}
 }
 
@@ -105,21 +105,23 @@ func (self *Table) genIndex(fieldIndex int, t matchType, begin, end int32) {
 		targetRecord := newRecordFromRaw(key)
 		_, fieldValue := targetRecord.Value(fieldIndex)
 
+		value := fieldValue.(int32)
+
 		// 遍历实际访问的数值
 		for fromkey := begin; fromkey <= end; fromkey++ {
 
 			var insertIndexRecord bool
 			switch t {
 			case matchType_Great:
-				insertIndexRecord = fieldValue.(int32) > fromkey
+				insertIndexRecord = value > fromkey
 			case matchType_GreatEqual:
-				insertIndexRecord = fieldValue.(int32) >= fromkey
+				insertIndexRecord = value >= fromkey
 			case matchType_LessEqual:
-				insertIndexRecord = fieldValue.(int32) <= fromkey
+				insertIndexRecord = value <= fromkey
 			case matchType_Less:
-				insertIndexRecord = fieldValue.(int32) < fromkey
+				insertIndexRecord = value < fromkey
 			case matchType_NotEqual:
-				insertIndexRecord = fieldValue.(int32) != fromkey
+				insertIndexRecord = value != fromkey
 			case matchType_Equal:
 
 			default:
@@ -156,7 +158,7 @@ func (self *Table) String() string {
 	var buff bytes.Buffer
 
 	for raw, value := range self.recordByMultiKey {
-		buff.WriteString(fmt.Sprintf("%v -> %v", raw, value.TagString()))
+		buff.WriteString(fmt.Sprintf("%v -> %v\n", raw, value.TagString()))
 
 	}
 

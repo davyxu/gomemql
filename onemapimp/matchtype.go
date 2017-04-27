@@ -7,10 +7,10 @@ const (
 	matchType_Unknown = iota
 	matchType_Equal
 	matchType_NotEqual
-	matchType_Great
-	matchType_GreatEqual
 	matchType_Less
 	matchType_LessEqual
+	matchType_Great
+	matchType_GreatEqual
 )
 
 func (self matchType) String() string {
