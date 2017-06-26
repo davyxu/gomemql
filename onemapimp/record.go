@@ -38,7 +38,7 @@ func (self *record) rawSetValue(index int, value interface{}) {
 	self.raw = self.rawValue.Interface()
 }
 
-func (self *record) initRaw(count int) {
+func (self *record)initRaw(count int) {
 	arrayType := reflect.ArrayOf(count*2, reflect.TypeOf(func(interface{}) {}).In(0))
 
 	self.rawValue = reflect.New(arrayType).Elem()
