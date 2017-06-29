@@ -126,7 +126,35 @@ type Group struct {
 	List []interface{}
 }
 
+func (self *Group) One() interface{} {
+
+	if len(self.List) == 0 {
+		return nil
+	}
+
+	return self.List[0]
+}
+
 func (self *Query) GroupByField(tagFieldName string, sortCallback func(a, b *Group) bool) []*Group {
+
+	return self.GroupBy(func(r interface{}) ([]interface{}, bool) {
+
+		rv := reflect.Indirect(reflect.ValueOf(r))
+
+		// 取结构体里指定的某个字段值
+		fieldValue := rv.FieldByName(tagFieldName)
+
+		if !fieldValue.IsValid() {
+			return nil, false
+		}
+
+		return []interface{}{fieldValue.Interface()}, true
+
+	}, sortCallback)
+
+}
+
+func (self *Query) GroupBy(dataSource func(interface{}) ([]interface{}, bool), sortCallback func(a, b *Group) bool) []*Group {
 
 	self.match()
 
@@ -134,31 +162,35 @@ func (self *Query) GroupByField(tagFieldName string, sortCallback func(a, b *Gro
 
 	for _, r := range self.result {
 
-		rv := reflect.Indirect(reflect.ValueOf(r))
-
-		fieldValue := rv.FieldByName(tagFieldName)
-
-		if !fieldValue.IsValid() {
+		// 一行数据, 可能被解成n个数据
+		list, ok := dataSource(r)
+		if !ok {
 			continue
 		}
 
-		group, _ := groupByField[fieldValue.Interface()]
+		// 将数据分组添加
+		for _, v := range list {
 
-		if group == nil {
-			group = &Group{Key: fieldValue.Interface()}
-			groupByField[fieldValue.Interface()] = group
+			group, _ := groupByField[v]
+
+			if group == nil {
+				group = &Group{Key: v}
+				groupByField[v] = group
+			}
+
+			group.List = append(group.List, r)
 		}
-
-		group.List = append(group.List, r)
 
 	}
 
 	var grouplist []*Group
 
+	// map转数组
 	for _, group := range groupByField {
 		grouplist = append(grouplist, group)
 	}
 
+	// 排序
 	if sortCallback != nil {
 		sort.Slice(grouplist, func(i, j int) bool {
 
