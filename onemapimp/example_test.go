@@ -74,3 +74,43 @@ func TestMultiIndex(t *testing.T) {
 	}
 
 }
+
+func TestDistinct(t *testing.T) {
+
+	tab := NewTable()
+
+	for _, v := range tabData {
+
+		tab.AddRecord(v, v.Name, v.Level)
+
+	}
+
+	result := NewQuery(tab).Equal("kitty").Equal(int32(20)).DistinctByField("Name", nil).Result()
+	for _, r := range result {
+		t.Log(r)
+	}
+
+}
+
+func TestGroupBy(t *testing.T) {
+
+	tab := NewTable()
+
+	for _, v := range []*tableDef{
+		{Level: 10, Name: "kitty"},
+		{Level: 20, Name: "hello"},
+		{Level: 10, Name: "kitty"},
+		{Level: 20, Name: "power"},
+		{Level: 10, Name: "hello"},
+		{Level: 30, Name: "kitty"},
+	} {
+
+		tab.AddRecord(v, v.Id)
+	}
+
+	result := NewQuery(tab).Equal(int32(0)).Result()
+	for _, r := range result {
+		t.Log(r)
+	}
+
+}
