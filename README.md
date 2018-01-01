@@ -11,8 +11,8 @@
 通过本系统查出符合条件的集合, 再检查动态数据, 例如: 玩家拥有物品等
 
 
-# node实现版
-https://github.com/davyxu/gomemql/nodeimp
+# onemap实现版
+https://github.com/davyxu/gomemql/onemapimp
 
 * 原生golang编写,无cgo, 无第三方引用, 不依赖sqlite
 
@@ -36,58 +36,76 @@ https://github.com/davyxu/gomemql/nodeimp
 
 # 例子
 ```golang
-	type tableDef struct {
-		Id    int32
-		Level int32
-		Name  string
-	}
-	
-	var tabData = []*tableDef{
-		&tableDef{Id: 6, Level: 20, Name: "kitty"},
-		&tableDef{Id: 1, Level: 50, Name: "hello"},
-		&tableDef{Id: 4, Level: 20, Name: "kitty"},
-		&tableDef{Id: 5, Level: 10, Name: "power"},
-		&tableDef{Id: 3, Level: 20, Name: "hello"},
-		&tableDef{Id: 2, Level: 20, Name: "kitty"},
+type tableDef struct {
+	Id    int32
+	Level int32
+	Name  string
+}
+
+var tabData = []*tableDef{
+	{Id: 6, Level: 20, Name: "kitty"},
+	{Id: 1, Level: 50, Name: "hello"},
+	{Id: 4, Level: 20, Name: "kitty"},
+	{Id: 5, Level: 10, Name: "power"},
+	{Id: 3, Level: 20, Name: "hello"},
+	{Id: 2, Level: 20, Name: "kitty"},
+}
+
+func TestHelloWorld(t *testing.T) {
+
+	tab := NewTable()
+
+	for _, v := range tabData {
+
+		tab.AddRecord(v, v.Name, v.Level)
+
 	}
 
-	func TestHelloWorld(t *testing.T) {
-	
-		tab := NewTable()
-	
-		for _, v := range tabData {
-			tab.AddRecord(v.Name, v)
-		}
-	
-		// 匹配Name为hello
-		NewQuery(tab).Equal("hello").Result(func(v interface{}) bool {
-	
-			t.Log(v)
-	
-			return true
-		})
-	
+	result := NewQuery(tab).Equal("kitty").Equal(int32(20)).Result()
+	for _, r := range result {
+		t.Log(r)
 	}
-	
-	func Test2ConditionWithIndex(t *testing.T) {
-	
-		tab := NewTable()
-	
-		for _, v := range tabData {
-			tab.AddRecord(v.Name, v.Id, v)
-		}
-	
-		// 构建第二个字段(Id), 从1~6的索引
-		tab.GenIndexNotEqual(1, 1, 6)
-	
-		NewQuery(tab).Equal("kitty").NotEqual(int32(4)).Result(func(v interface{}) bool {
-	
-			t.Log(v)
-	
-			return true
-		})
-	
+
+	t.Log(tab.String())
+}
+
+func TestGreatIndex(t *testing.T) {
+
+	tab := NewTable()
+
+	for _, v := range tabData {
+
+		tab.AddRecord(v, v.Name, v.Id)
+
 	}
+
+	tab.GenIndexGreat(1, 1, 6)
+
+	result := NewQuery(tab).Equal("hello").Great(int32(2)).Result()
+	for _, r := range result {
+		t.Log(r)
+	}
+
+}
+
+func TestMultiIndex(t *testing.T) {
+
+	tab := NewTable()
+
+	tab.AddRecord("a", int32(1), int32(3))
+	tab.AddRecord("b", int32(1), int32(3))
+
+	tab.GenIndexGreatEqual(0, 1, 3)
+	tab.GenIndexLessEqual(1, 1, 3)
+
+	t.Log(tab.String())
+
+	result := NewQuery(tab).GreatEqual(int32(1)).LessEqual(int32(1)).Result()
+	for _, r := range result {
+		t.Log(r)
+	}
+
+}
 
 
 ```

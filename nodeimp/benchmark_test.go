@@ -25,7 +25,7 @@ func BenchmarkTest(b *testing.B) {
 
 	b.ResetTimer()
 	// 并发查询量
-	for i := 0; i < 30000; i++ {
+	for i := 0; i < b.N; i++ {
 		NewQuery(tab).Great(int32(50)).Equal(int32(500)).Result(func(interface{}) bool {
 			return true
 		})
