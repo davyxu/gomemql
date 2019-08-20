@@ -120,6 +120,4 @@ C#版参见: https://github.com/davyxu/MemQLSharp
 
 感觉不错请star, 谢谢!
 
-开源讨论群: 527430600
-
 知乎: [http://www.zhihu.com/people/sunicdavy](http://www.zhihu.com/people/sunicdavy)
